@@ -1,0 +1,38 @@
+name: Build and Test Flask Docker App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build Docker image
+      run: docker build -t flask-devops-app .
+
+    - name: Run Flask container
+      run: docker run -d -p 5000:5000 flask-devops-app
+
+    - name: Check Health Endpoint
+      run: |
+        sleep 5
+        curl --fail http://localhost:5000/health
+
