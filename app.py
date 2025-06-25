@@ -4,21 +4,29 @@ import os
 
 app = Flask(__name__)
 
-# Connect to MongoDB using env vars
-mongo_host = os.environ.get("MONGO_HOST", "localhost")
-mongo_port = int(os.environ.get("MONGO_PORT", 27017))
+# Read Mongo URI from environment variable
+mongo_uri = os.environ.get("MONGO_URI")
 
-client = MongoClient(host=mongo_host, port=mongo_port)
-db = client['devopsdb']
+try:
+    client = MongoClient(mongo_uri)
+    db = client['devopsdb']  # Use your actual DB name here
+    mongo_status = True
+except Exception as e:
+    print("MongoDB connection failed:", e)
+    mongo_status = False
 
 @app.route('/')
 def home():
-    return "Connected to MongoDB: " + str(db.list_collection_names())
+    if mongo_status:
+        return "✅ Flask app is connected to MongoDB Atlas!"
+    else:
+        return "❌ Failed to connect to MongoDB."
 
 @app.route('/health')
 def health():
     return "OK", 200
 
 if __name__ == '__main__':
+    # Listen on all interfaces inside Docker
     app.run(host='0.0.0.0', port=5000)
 
